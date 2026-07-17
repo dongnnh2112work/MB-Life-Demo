@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { filterEmployeesByCode, findEmployeeByCode } from "@/lib/employees";
-import { fetchEmployees, isLocalMode, presentEmployee } from "@/lib/live-data";
+import { clearLiveState, fetchEmployees, isLocalMode, presentEmployee } from "@/lib/live-data";
 import type { Employee } from "@/lib/types";
 
 type Status = "idle" | "loading" | "success" | "error";
@@ -15,6 +15,7 @@ export default function InputPage() {
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const presentingRef = useRef(false);
 
   useEffect(() => {
     fetchEmployees()
@@ -30,6 +31,9 @@ export default function InputPage() {
   }, [employees, query]);
 
   const present = useCallback(async (employee: Employee) => {
+    if (presentingRef.current) return;
+    presentingRef.current = true;
+
     setStatus("loading");
     setMessage("");
     setShowSuggestions(false);
@@ -37,6 +41,7 @@ export default function InputPage() {
     try {
       await presentEmployee(employee);
     } catch {
+      presentingRef.current = false;
       setStatus("error");
       setMessage("Gửi thất bại. Thử lại.");
       return;
@@ -46,6 +51,7 @@ export default function InputPage() {
     setMessage(`Đã hiển thị: ${employee.title} ${employee.name}`);
     setQuery("");
     setTimeout(() => {
+      presentingRef.current = false;
       setStatus("idle");
       setMessage("");
       inputRef.current?.focus();
@@ -67,6 +73,34 @@ export default function InputPage() {
     setQuery(employee.code);
     present(employee);
   };
+
+  const returnToIdle = useCallback(async () => {
+    if (presentingRef.current) return;
+    presentingRef.current = true;
+
+    setStatus("loading");
+    setMessage("");
+    setShowSuggestions(false);
+
+    try {
+      await clearLiveState();
+    } catch {
+      presentingRef.current = false;
+      setStatus("error");
+      setMessage("Không thể trả về màn chờ. Thử lại.");
+      return;
+    }
+
+    setStatus("success");
+    setMessage("Đã trả về màn hình chờ");
+    setQuery("");
+    setTimeout(() => {
+      presentingRef.current = false;
+      setStatus("idle");
+      setMessage("");
+      inputRef.current?.focus();
+    }, 2000);
+  }, []);
 
   return (
     <main className="flex min-h-dvh flex-col bg-[#0c1220]">
@@ -135,6 +169,15 @@ export default function InputPage() {
             className="mt-6 w-full rounded-2xl bg-[#c9a84c] py-5 text-lg font-semibold text-[#0c1220] transition hover:bg-[#dbb95a] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {status === "loading" ? "Đang gửi..." : "Hiển thị lên màn hình"}
+          </button>
+
+          <button
+            type="button"
+            onClick={returnToIdle}
+            disabled={status === "loading"}
+            className="mt-3 w-full rounded-2xl border border-white/15 bg-transparent py-4 text-base font-medium text-white/80 transition hover:border-white/30 hover:bg-white/5 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Trả về màn hình chờ
           </button>
         </form>
 

@@ -1,5 +1,6 @@
 import type { Employee, LiveState } from "./types";
 import {
+  clearLocalLiveState,
   getLocalEmployees,
   isLocalMode,
   subscribeLocalLiveState,
@@ -8,6 +9,24 @@ import {
 import { createBrowserClient } from "./supabase/client";
 
 export { isLocalMode };
+
+function stateTimestamp(state: LiveState): number {
+  const raw = state.triggered_at || state.updated_at;
+  const ms = Date.parse(raw);
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+/** Only forward newer states so a late fetch cannot overwrite a fresher realtime event. */
+function createOrderedStateHandler(onState: (state: LiveState) => void) {
+  let latestMs = -1;
+
+  return (state: LiveState) => {
+    const ms = stateTimestamp(state);
+    if (ms < latestMs) return;
+    latestMs = ms;
+    onState(state);
+  };
+}
 
 export async function fetchEmployees(): Promise<Employee[]> {
   if (isLocalMode()) return getLocalEmployees();
@@ -28,6 +47,7 @@ export async function presentEmployee(employee: Employee): Promise<void> {
     return;
   }
 
+  const now = new Date().toISOString();
   const supabase = createBrowserClient();
   const { error } = await supabase
     .from("live_state")
@@ -36,8 +56,31 @@ export async function presentEmployee(employee: Employee): Promise<void> {
       employee_name: employee.name,
       years: employee.years,
       title: employee.title,
-      triggered_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      triggered_at: now,
+      updated_at: now,
+    })
+    .eq("id", 1);
+
+  if (error) throw error;
+}
+
+export async function clearLiveState(): Promise<void> {
+  if (isLocalMode()) {
+    await clearLocalLiveState();
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const supabase = createBrowserClient();
+  const { error } = await supabase
+    .from("live_state")
+    .update({
+      employee_id: null,
+      employee_name: null,
+      years: null,
+      title: null,
+      triggered_at: now,
+      updated_at: now,
     })
     .eq("id", 1);
 
@@ -53,6 +96,8 @@ export function subscribeLiveState(
   }
 
   const supabase = createBrowserClient();
+  const apply = createOrderedStateHandler(onState);
+  let cancelled = false;
 
   supabase
     .from("live_state")
@@ -60,21 +105,24 @@ export function subscribeLiveState(
     .eq("id", 1)
     .single()
     .then(({ data }) => {
-      if (data) onState(data as LiveState);
+      if (!cancelled && data) apply(data as LiveState);
     });
 
   const channel = supabase
-    .channel("live_state_display")
+    .channel(`live_state_display_${Math.random().toString(36).slice(2)}`)
     .on(
       "postgres_changes",
       { event: "UPDATE", schema: "public", table: "live_state" },
-      (payload) => onState(payload.new as LiveState)
+      (payload) => {
+        if (!cancelled) apply(payload.new as LiveState);
+      }
     )
     .subscribe((status) => {
-      onConnected(status === "SUBSCRIBED");
+      if (!cancelled) onConnected(status === "SUBSCRIBED");
     });
 
   return () => {
+    cancelled = true;
     supabase.removeChannel(channel);
   };
 }

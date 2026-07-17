@@ -16,7 +16,11 @@ export function findEmployeeByCode(
 
   // Allow typing "1" / "01" to match "001"
   const padded = normalized.padStart(3, "0");
-  return employees.find((e) => e.code === padded) ?? null;
+  if (padded !== normalized) {
+    return employees.find((e) => e.code === padded) ?? null;
+  }
+
+  return null;
 }
 
 export function filterEmployeesByCode(
@@ -24,13 +28,9 @@ export function filterEmployeesByCode(
   query: string
 ): Employee[] {
   const normalized = normalizeCode(query);
-  if (!normalized) return employees.slice(0, 8);
+  if (!normalized) return [];
 
   return employees
-    .filter(
-      (e) =>
-        e.code.includes(normalized) ||
-        e.code.includes(normalized.padStart(3, "0"))
-    )
+    .filter((e) => e.code.startsWith(normalized))
     .slice(0, 8);
 }

@@ -13,6 +13,12 @@ const IDLE_STATE: LiveState = {
 
 const POLL_MS = 500;
 
+function stateTimestamp(state: LiveState): number {
+  const raw = state.triggered_at || state.updated_at;
+  const ms = Date.parse(raw);
+  return Number.isFinite(ms) ? ms : 0;
+}
+
 export function isLocalMode(): boolean {
   if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === "true") return true;
 
@@ -49,12 +55,31 @@ export async function updateLocalLiveState(employee: Employee): Promise<void> {
   }
 }
 
+export async function clearLocalLiveState(): Promise<void> {
+  const now = new Date().toISOString();
+  const res = await fetch("/api/live-state", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      employee_id: null,
+      employee_name: null,
+      years: null,
+      title: null,
+      triggered_at: now,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to clear live state");
+  }
+}
+
 export function subscribeLocalLiveState(
   onState: (state: LiveState) => void,
   onConnected: (connected: boolean) => void
 ): () => void {
   let cancelled = false;
-  let lastUpdatedAt = "";
+  let latestMs = -1;
 
   const poll = async () => {
     try {
@@ -64,13 +89,13 @@ export function subscribeLocalLiveState(
       const state = (await res.json()) as LiveState;
       onConnected(true);
 
-      if (state.updated_at !== lastUpdatedAt) {
-        lastUpdatedAt = state.updated_at;
-        onState(state);
-      }
+      const ms = stateTimestamp(state);
+      if (ms < latestMs) return;
+      latestMs = ms;
+      onState(state);
     } catch {
       onConnected(false);
-      if (!lastUpdatedAt) onState(IDLE_STATE);
+      if (latestMs < 0) onState(IDLE_STATE);
     }
   };
 
