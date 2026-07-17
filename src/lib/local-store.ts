@@ -1,9 +1,6 @@
 import { LOCAL_EMPLOYEES } from "@/data/local-employees";
 import type { Employee, LiveState } from "./types";
 
-const LIVE_STATE_KEY = "mb-life-live-state";
-const CHANNEL_NAME = "mb-life-live";
-
 const IDLE_STATE: LiveState = {
   id: 1,
   employee_id: null,
@@ -13,6 +10,8 @@ const IDLE_STATE: LiveState = {
   triggered_at: null,
   updated_at: new Date().toISOString(),
 };
+
+const POLL_MS = 500;
 
 export function isLocalMode(): boolean {
   if (process.env.NEXT_PUBLIC_USE_LOCAL_DATA === "true") return true;
@@ -32,63 +31,57 @@ export function getLocalEmployees(): Employee[] {
   return LOCAL_EMPLOYEES;
 }
 
-function readLiveState(): LiveState {
-  if (typeof window === "undefined") return IDLE_STATE;
-
-  try {
-    const raw = localStorage.getItem(LIVE_STATE_KEY);
-    if (raw) return JSON.parse(raw) as LiveState;
-  } catch {
-    // ignore invalid cache
-  }
-
-  return IDLE_STATE;
-}
-
-function writeLiveState(state: LiveState): void {
-  localStorage.setItem(LIVE_STATE_KEY, JSON.stringify(state));
-
-  if (typeof BroadcastChannel !== "undefined") {
-    const channel = new BroadcastChannel(CHANNEL_NAME);
-    channel.postMessage({ type: "live_state", state });
-    channel.close();
-  }
-}
-
 export async function updateLocalLiveState(employee: Employee): Promise<void> {
-  writeLiveState({
-    id: 1,
-    employee_id: employee.id,
-    employee_name: employee.name,
-    years: employee.years,
-    title: employee.title,
-    triggered_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+  const res = await fetch("/api/live-state", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      employee_id: employee.id,
+      employee_name: employee.name,
+      years: employee.years,
+      title: employee.title,
+      triggered_at: new Date().toISOString(),
+    }),
   });
+
+  if (!res.ok) {
+    throw new Error("Failed to update live state");
+  }
 }
 
 export function subscribeLocalLiveState(
   onState: (state: LiveState) => void,
   onConnected: (connected: boolean) => void
 ): () => void {
-  onState(readLiveState());
-  onConnected(true);
+  let cancelled = false;
+  let lastUpdatedAt = "";
 
-  const channel = new BroadcastChannel(CHANNEL_NAME);
-  channel.onmessage = (event) => {
-    if (event.data?.type === "live_state") {
-      onState(event.data.state as LiveState);
+  const poll = async () => {
+    try {
+      const res = await fetch("/api/live-state", { cache: "no-store" });
+      if (!res.ok) throw new Error("poll failed");
+
+      const state = (await res.json()) as LiveState;
+      onConnected(true);
+
+      if (state.updated_at !== lastUpdatedAt) {
+        lastUpdatedAt = state.updated_at;
+        onState(state);
+      }
+    } catch {
+      onConnected(false);
+      if (!lastUpdatedAt) onState(IDLE_STATE);
     }
   };
 
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === LIVE_STATE_KEY) onState(readLiveState());
-  };
-  window.addEventListener("storage", onStorage);
+  void poll();
+  const timer = window.setInterval(() => {
+    if (!cancelled) void poll();
+  }, POLL_MS);
 
   return () => {
-    channel.close();
-    window.removeEventListener("storage", onStorage);
+    cancelled = true;
+    window.clearInterval(timer);
     onConnected(false);
   };
 }
