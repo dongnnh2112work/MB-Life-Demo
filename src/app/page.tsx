@@ -4,13 +4,13 @@ export default function HomePage() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center bg-[#050a14] px-6 text-center">
       <p className="text-xs font-medium uppercase tracking-[0.45em] text-[#c9a84c]/80">
-        MB Life Key Moment
+        MB Life Event
       </p>
       <h1 className="mt-4 text-4xl font-semibold text-white md:text-5xl">
-        Employee Recognition
+        Photobooth
       </h1>
       <p className="mt-3 max-w-md text-white/50">
-        Hai màn hình riêng biệt: iPad nhập tên, LED hiển thị realtime qua Supabase.
+    
       </p>
 
       <div className="mt-12 flex w-full max-w-md flex-col gap-4">
