@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+:root {
+  --background: #050a14;
+  --foreground: #f5f5f5;
+  --gold: #c9a84c;
+  --gold-light: #e8c96a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.display-name {
+  font-family: var(--font-display), Georgia, serif;
+  text-shadow: 0 0 60px rgba(212, 175, 55, 0.35);
+}
