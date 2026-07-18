@@ -34,8 +34,11 @@ function normalizedDraft(draft: EmployeeDraft): EmployeeDraft {
   };
 }
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Lỗi không xác định";
+}
+
 export default function EmployeeAdminPage() {
-  const [supabase] = useState(() => createBrowserClient());
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -52,21 +55,23 @@ export default function EmployeeAdminPage() {
 
   const loadEmployees = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("employees")
-      .select("id, code, name, years, title")
-      .order("code");
+    try {
+      const supabase = createBrowserClient();
+      const { data, error } = await supabase
+        .from("employees")
+        .select("id, code, name, years, title")
+        .order("code");
 
-    if (error) {
+      if (error) throw error;
+      setEmployees((data as Employee[]) ?? []);
+    } catch (error) {
       setFeedback({
         type: "error",
-        text: `Không tải được dữ liệu: ${error.message}`,
+        text: `Không tải được dữ liệu: ${errorMessage(error)}. Kiểm tra biến môi trường Supabase.`,
       });
-    } else {
-      setEmployees((data as Employee[]) ?? []);
     }
     setLoading(false);
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -127,15 +132,22 @@ export default function EmployeeAdminPage() {
     setSaving(true);
     setFeedback(null);
 
-    const query = editingId
-      ? supabase.from("employees").update(payload).eq("id", editingId)
-      : supabase.from("employees").insert(payload);
-    const { error } = await query;
+    let saveError: string | null = null;
+    try {
+      const supabase = createBrowserClient();
+      const query = editingId
+        ? supabase.from("employees").update(payload).eq("id", editingId)
+        : supabase.from("employees").insert(payload);
+      const { error } = await query;
+      if (error) saveError = error.message;
+    } catch (error) {
+      saveError = errorMessage(error);
+    }
 
-    if (error) {
+    if (saveError) {
       setFeedback({
         type: "error",
-        text: `Không thể lưu: ${error.message}. Kiểm tra đã chạy migration CRUD chưa.`,
+        text: `Không thể lưu: ${saveError}. Kiểm tra biến môi trường và migration CRUD.`,
       });
     } else {
       setFeedback({
@@ -157,15 +169,22 @@ export default function EmployeeAdminPage() {
     if (!confirmed) return;
 
     setFeedback(null);
-    const { error } = await supabase
-      .from("employees")
-      .delete()
-      .eq("id", employee.id);
+    let deleteError: string | null = null;
+    try {
+      const supabase = createBrowserClient();
+      const { error } = await supabase
+        .from("employees")
+        .delete()
+        .eq("id", employee.id);
+      if (error) deleteError = error.message;
+    } catch (error) {
+      deleteError = errorMessage(error);
+    }
 
-    if (error) {
+    if (deleteError) {
       setFeedback({
         type: "error",
-        text: `Không thể xóa: ${error.message}.`,
+        text: `Không thể xóa: ${deleteError}.`,
       });
       return;
     }
@@ -218,16 +237,21 @@ export default function EmployeeAdminPage() {
     }));
 
     let importError: string | null = null;
-    for (let index = 0; index < payload.length; index += 200) {
-      const chunk = payload.slice(index, index + 200);
-      const { error } = await supabase
-        .from("employees")
-        .upsert(chunk, { onConflict: "code" });
+    try {
+      const supabase = createBrowserClient();
+      for (let index = 0; index < payload.length; index += 200) {
+        const chunk = payload.slice(index, index + 200);
+        const { error } = await supabase
+          .from("employees")
+          .upsert(chunk, { onConflict: "code" });
 
-      if (error) {
-        importError = error.message;
-        break;
+        if (error) {
+          importError = error.message;
+          break;
+        }
       }
+    } catch (error) {
+      importError = errorMessage(error);
     }
 
     if (importError) {
