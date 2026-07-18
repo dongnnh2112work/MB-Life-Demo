@@ -36,6 +36,34 @@ CREATE POLICY "employees_select" ON employees
   FOR SELECT TO anon, authenticated
   USING (true);
 
+-- Public demo CRUD permissions for /admin/employees.
+-- WARNING: switch to authenticated/service-role access before production.
+DROP POLICY IF EXISTS "employees_insert" ON employees;
+CREATE POLICY "employees_insert" ON employees
+  FOR INSERT TO anon, authenticated
+  WITH CHECK (
+    code <> ''
+    AND name <> ''
+    AND years >= 0
+    AND title IN ('Anh', 'Chị')
+  );
+
+DROP POLICY IF EXISTS "employees_update" ON employees;
+CREATE POLICY "employees_update" ON employees
+  FOR UPDATE TO anon, authenticated
+  USING (true)
+  WITH CHECK (
+    code <> ''
+    AND name <> ''
+    AND years >= 0
+    AND title IN ('Anh', 'Chị')
+  );
+
+DROP POLICY IF EXISTS "employees_delete" ON employees;
+CREATE POLICY "employees_delete" ON employees
+  FOR DELETE TO anon, authenticated
+  USING (true);
+
 DROP POLICY IF EXISTS "live_state_select" ON live_state;
 CREATE POLICY "live_state_select" ON live_state
   FOR SELECT TO anon, authenticated

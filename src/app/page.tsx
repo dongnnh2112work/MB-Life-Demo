@@ -18,13 +18,19 @@ export default function HomePage() {
           href="/input"
           className="rounded-2xl border border-[#c9a84c]/40 bg-[#c9a84c]/10 px-8 py-5 text-lg font-medium text-[#e8c96a] transition hover:bg-[#c9a84c]/20"
         >
-          iPad — Nhập tên
+          iPad — Nhập mã nhân viên
         </Link>
         <Link
           href="/display"
           className="rounded-2xl border border-white/15 bg-white/5 px-8 py-5 text-lg font-medium text-white transition hover:bg-white/10"
         >
           LED — Màn hình sân khấu
+        </Link>
+        <Link
+          href="/admin/employees"
+          className="rounded-2xl border border-white/10 px-8 py-4 text-sm font-medium text-white/55 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
+        >
+          Quản trị — Danh sách nhân viên
         </Link>
       </div>
     </main>
