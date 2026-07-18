@@ -58,6 +58,7 @@ export default function EmployeeReveal({
   const [interaction, setInteraction] = useState<Interaction | null>(null);
   const [dirty, setDirty] = useState(false);
   const [holdingKey, setHoldingKey] = useState(false);
+  const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [notice, setNotice] = useState("");
   const [previewName, setPreviewName] = useState(
     name || "NGUYỄN THÙY LINH"
@@ -80,6 +81,7 @@ export default function EmployeeReveal({
       onEditModeChange?.(next);
 
       if (next) {
+        setPanelCollapsed(false);
         setPreviewName(name || "NGUYỄN THÙY LINH");
         setPreviewYears(years || 2);
         setPreviewTitle(title || "Chị");
@@ -178,16 +180,18 @@ export default function EmployeeReveal({
     if (interaction.mode === "drag") {
       updateElement(interaction.id, {
         ...initial,
-        x: clamp(initial.x + dx, 0, 100 - initial.width),
-        y: clamp(initial.y + dy, 0, 100 - initial.height),
+        // Position is intentionally independent from the frame size. This lets
+        // wide LED strips move freely across the whole master canvas.
+        x: initial.x + dx,
+        y: initial.y + dy,
       });
       return;
     }
 
     const minWidth = interaction.id === "divider" ? 4 : 8;
     const minHeight = interaction.id === "divider" ? 1 : 3;
-    const width = clamp(initial.width + dx, minWidth, 100 - initial.x);
-    const height = clamp(initial.height + dy, minHeight, 100 - initial.y);
+    const width = clamp(initial.width + dx, minWidth, 200);
+    const height = clamp(initial.height + dy, minHeight, 100);
     const scale = Math.min(width / initial.width, height / initial.height);
 
     updateElement(interaction.id, {
@@ -355,7 +359,17 @@ export default function EmployeeReveal({
         {holdingKey ? "Giữ E…" : editMode ? "Editing" : "Setup"}
       </button>
 
-      {editMode && (
+      {editMode && panelCollapsed && (
+        <button
+          type="button"
+          onClick={() => setPanelCollapsed(false)}
+          className="absolute left-4 top-4 z-50 rounded-xl border border-[#e8c96a]/40 bg-[#07101f]/90 px-4 py-2.5 font-sans text-xs font-medium text-[#e8c96a] shadow-xl backdrop-blur-xl transition hover:bg-[#101c31]"
+        >
+          Mở công cụ layout
+        </button>
+      )}
+
+      {editMode && !panelCollapsed && (
         <aside className="absolute left-4 top-4 z-50 w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-white/15 bg-[#07101f]/95 p-4 font-sans text-white shadow-2xl backdrop-blur-xl">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -366,13 +380,22 @@ export default function EmployeeReveal({
                 Kéo khung để di chuyển · kéo góc vàng để resize
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => changeEditMode(false)}
-              className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-white/60 transition hover:bg-white/10 hover:text-white"
-            >
-              Đóng
-            </button>
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={() => setPanelCollapsed(true)}
+                className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-white/60 transition hover:bg-white/10 hover:text-white"
+              >
+                Thu gọn
+              </button>
+              <button
+                type="button"
+                onClick={() => changeEditMode(false)}
+                className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-white/60 transition hover:bg-white/10 hover:text-white"
+              >
+                Đóng
+              </button>
+            </div>
           </div>
 
           <div className="mt-4 grid grid-cols-[70px_1fr] gap-2">
