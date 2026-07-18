@@ -1,9 +1,31 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Stars } from "@react-three/drei";
 import * as THREE from "three";
+
+const PARTICLE_COUNT = 400;
+
+function createParticlePositions(): Float32Array {
+  const positions = new Float32Array(PARTICLE_COUNT * 3);
+  let seed = 1987;
+
+  const random = () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    positions[i * 3] = (random() - 0.5) * 24;
+    positions[i * 3 + 1] = (random() - 0.5) * 14;
+    positions[i * 3 + 2] = (random() - 0.5) * 12;
+  }
+
+  return positions;
+}
+
+const PARTICLE_POSITIONS = createParticlePositions();
 
 function GoldRing() {
   const ref = useRef<THREE.Mesh>(null);
@@ -56,19 +78,6 @@ function InnerGlow() {
 }
 
 function ParticleField() {
-  const count = 400;
-  const positions = useRef<Float32Array | null>(null);
-
-  if (!positions.current) {
-    const arr = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      arr[i * 3] = (Math.random() - 0.5) * 24;
-      arr[i * 3 + 1] = (Math.random() - 0.5) * 14;
-      arr[i * 3 + 2] = (Math.random() - 0.5) * 12;
-    }
-    positions.current = arr;
-  }
-
   const ref = useRef<THREE.Points>(null);
 
   useFrame((_, delta) => {
@@ -80,7 +89,7 @@ function ParticleField() {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          args={[positions.current!, 3]}
+          args={[PARTICLE_POSITIONS, 3]}
         />
       </bufferGeometry>
       <pointsMaterial

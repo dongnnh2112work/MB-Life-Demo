@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { filterEmployeesByCode, findEmployeeByCode } from "@/lib/employees";
 import { clearLiveState, fetchEmployees, isLocalMode, presentEmployee } from "@/lib/live-data";
 import type { Employee } from "@/lib/types";
@@ -10,7 +10,6 @@ type Status = "idle" | "loading" | "success" | "error";
 export default function InputPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<Employee[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
@@ -26,9 +25,10 @@ export default function InputPage() {
       });
   }, []);
 
-  useEffect(() => {
-    setSuggestions(filterEmployeesByCode(employees, query));
-  }, [employees, query]);
+  const suggestions = useMemo(
+    () => filterEmployeesByCode(employees, query),
+    [employees, query]
+  );
 
   const present = useCallback(async (employee: Employee) => {
     if (presentingRef.current) return;

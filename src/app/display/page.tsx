@@ -23,6 +23,7 @@ const IDLE_STATE: LiveState = {
 export default function DisplayPage() {
   const [liveState, setLiveState] = useState<LiveState>(IDLE_STATE);
   const [connected, setConnected] = useState(false);
+  const [editingLayout, setEditingLayout] = useState(false);
 
   const applyState = useCallback((row: LiveState) => {
     setLiveState(row);
@@ -42,7 +43,7 @@ export default function DisplayPage() {
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#050a14_75%)]" />
 
-      {!hasEmployee && (
+      {!hasEmployee && !editingLayout && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center">
           <p className="text-sm uppercase tracking-[0.5em] text-white/30">
             MB Life
@@ -53,16 +54,19 @@ export default function DisplayPage() {
         </div>
       )}
 
-      {hasEmployee && (
-        <EmployeeReveal
-          name={liveState.employee_name!}
-          years={liveState.years!}
-          title={liveState.title!}
-          visible
-        />
-      )}
+      <EmployeeReveal
+        name={liveState.employee_name ?? ""}
+        years={liveState.years ?? 0}
+        title={liveState.title ?? "Chị"}
+        visible={hasEmployee}
+        onEditModeChange={setEditingLayout}
+      />
 
-      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 text-xs text-white/30">
+      <div
+        className={`absolute bottom-4 right-4 z-20 flex items-center gap-2 text-xs text-white/30 ${
+          editingLayout ? "hidden" : ""
+        }`}
+      >
         <span
           className={`h-2 w-2 rounded-full ${connected ? "bg-emerald-400" : "bg-red-400"}`}
         />
