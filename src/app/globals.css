@@ -22,3 +22,45 @@ body {
   font-family: var(--font-display), Georgia, serif;
   text-shadow: 0 0 60px rgba(212, 175, 55, 0.35);
 }
+
+.ipad-gradient-btn {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(145deg, rgb(28 48 120 / 0.95) 0%, rgb(12 10 36 / 0.98) 100%)
+    padding-box,
+    linear-gradient(
+      90deg,
+      #00d4ff 0%,
+      #7b5cff 45%,
+      #e040fb 75%,
+      #00d4ff 100%
+    )
+    border-box;
+  box-shadow:
+    0 0 24px rgb(0 212 255 / 0.2),
+    0 0 48px rgb(224 64 251 / 0.12),
+    inset 0 1px 0 rgb(255 255 255 / 0.12);
+}
+
+.ipad-gradient-btn:hover:not(:disabled) {
+  box-shadow:
+    0 0 32px rgba(0, 212, 255, 0.28),
+    0 0 56px rgba(224, 64, 251, 0.2);
+}
+
+.ipad-gradient-box {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(rgb(10 8 30 / 0.74), rgb(10 8 30 / 0.74)) padding-box,
+    linear-gradient(
+      135deg,
+      #00d4ff 0%,
+      #a855f7 40%,
+      #ec4899 70%,
+      #00d4ff 100%
+    )
+    border-box;
+  box-shadow:
+    0 0 30px rgb(0 212 255 / 0.14),
+    inset 0 0 48px rgb(0 0 0 / 0.3);
+}
