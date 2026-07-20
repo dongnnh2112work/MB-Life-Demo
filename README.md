@@ -43,12 +43,17 @@ npm run dev
 Sửa file `supabase/seed.sql` hoặc import trực tiếp vào bảng `employees`:
 
 ```sql
-INSERT INTO employees (name, years) VALUES
-  ('Tên Nhân Viên', 10)
-ON CONFLICT (name) DO UPDATE SET years = EXCLUDED.years;
+INSERT INTO employees (code, name, days, title, wish) VALUES
+  ('003', 'Tên Nhân Viên', 10, 'Chị', 'Câu chúc riêng cho người này.')
+ON CONFLICT (code) DO UPDATE SET
+  name = EXCLUDED.name,
+  days = EXCLUDED.days,
+  title = EXCLUDED.title,
+  wish = EXCLUDED.wish;
 ```
 
-Cột `years` = số năm làm việc / gắn bó.
+Cột `days` = số ngày đồng hành. Cột `wish` = câu chúc riêng của từng người,
+hiển thị ở cuối màn hình LED.
 
 ## Deploy Vercel
 

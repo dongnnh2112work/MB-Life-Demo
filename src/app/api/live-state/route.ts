@@ -24,8 +24,9 @@ export async function POST(request: Request) {
     id: 1,
     employee_id: body.employee_id ?? null,
     employee_name: body.employee_name ?? null,
-    years: typeof body.years === "number" ? body.years : null,
+    days: typeof body.days === "number" ? body.days : null,
     title: (body.title as Honorific | null) ?? null,
+    wish: body.wish ?? null,
     triggered_at: body.triggered_at ?? new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };

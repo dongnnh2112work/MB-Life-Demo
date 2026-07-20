@@ -5,8 +5,9 @@ const IDLE_STATE: LiveState = {
   id: 1,
   employee_id: null,
   employee_name: null,
-  years: null,
+  days: null,
   title: null,
+  wish: null,
   triggered_at: null,
   updated_at: new Date().toISOString(),
 };
@@ -44,8 +45,9 @@ export async function updateLocalLiveState(employee: Employee): Promise<void> {
     body: JSON.stringify({
       employee_id: employee.id,
       employee_name: employee.name,
-      years: employee.years,
+      days: employee.days,
       title: employee.title,
+      wish: employee.wish,
       triggered_at: new Date().toISOString(),
     }),
   });
@@ -63,8 +65,9 @@ export async function clearLocalLiveState(): Promise<void> {
     body: JSON.stringify({
       employee_id: null,
       employee_name: null,
-      years: null,
+      days: null,
       title: null,
+      wish: null,
       triggered_at: now,
     }),
   });

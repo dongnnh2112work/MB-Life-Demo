@@ -34,7 +34,7 @@ export async function fetchEmployees(): Promise<Employee[]> {
   const supabase = createBrowserClient();
   const { data, error } = await supabase
     .from("employees")
-    .select("id, code, name, years, title")
+    .select("id, code, name, days, title, wish")
     .order("code");
 
   if (error) throw error;
@@ -54,8 +54,9 @@ export async function presentEmployee(employee: Employee): Promise<void> {
     .update({
       employee_id: employee.id,
       employee_name: employee.name,
-      years: employee.years,
+      days: employee.days,
       title: employee.title,
+      wish: employee.wish,
       triggered_at: now,
       updated_at: now,
     })
@@ -77,8 +78,9 @@ export async function clearLiveState(): Promise<void> {
     .update({
       employee_id: null,
       employee_name: null,
-      years: null,
+      days: null,
       title: null,
+      wish: null,
       triggered_at: now,
       updated_at: now,
     })

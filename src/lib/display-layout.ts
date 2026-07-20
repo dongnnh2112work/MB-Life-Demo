@@ -20,8 +20,8 @@ export type DisplayLayout = Record<DisplayElementId, DisplayElementLayout>;
 export const DISPLAY_ELEMENT_LABELS: Record<DisplayElementId, string> = {
   thanks: "Lời cảm ơn",
   name: "Tên nhân viên",
-  tenure: "Số năm công tác",
-  wish: "Lời chúc",
+  tenure: "Số ngày đồng hành",
+  wish: "Lời chúc riêng",
   divider: "Đường trang trí",
 };
 

@@ -4,8 +4,9 @@ const IDLE_STATE: LiveState = {
   id: 1,
   employee_id: null,
   employee_name: null,
-  years: null,
+  days: null,
   title: null,
+  wish: null,
   triggered_at: null,
   updated_at: new Date().toISOString(),
 };

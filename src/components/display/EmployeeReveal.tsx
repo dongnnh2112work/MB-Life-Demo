@@ -23,8 +23,9 @@ import type { Honorific } from "@/lib/types";
 
 type Props = {
   name: string;
-  years: number;
+  days: number;
   title: Honorific;
+  wish: string;
   visible: boolean;
   onEditModeChange?: (editing: boolean) => void;
 };
@@ -40,11 +41,14 @@ type Interaction = {
 
 const LONG_PREVIEW_NAME = "NGUYỄN HOÀNG MINH ANH PHƯƠNG";
 const SHORT_PREVIEW_NAME = "AN";
+const DEFAULT_PREVIEW_WISH =
+  "luôn vững bước, lan tỏa giá trị và cùng MB Life tiến bước rực rỡ, vạn dặm thăng hoa.";
 
 export default function EmployeeReveal({
   name,
-  years,
+  days,
   title,
+  wish,
   visible,
   onEditModeChange,
 }: Props) {
@@ -63,8 +67,9 @@ export default function EmployeeReveal({
   const [previewName, setPreviewName] = useState(
     name || "NGUYỄN THÙY LINH"
   );
-  const [previewYears, setPreviewYears] = useState(years || 2);
+  const [previewDays, setPreviewDays] = useState(days || 2);
   const [previewTitle, setPreviewTitle] = useState<Honorific>(title || "Chị");
+  const [previewWish, setPreviewWish] = useState(wish || DEFAULT_PREVIEW_WISH);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -83,11 +88,12 @@ export default function EmployeeReveal({
       if (next) {
         setPanelCollapsed(false);
         setPreviewName(name || "NGUYỄN THÙY LINH");
-        setPreviewYears(years || 2);
+        setPreviewDays(days || 2);
         setPreviewTitle(title || "Chị");
+        setPreviewWish(wish || DEFAULT_PREVIEW_WISH);
       }
     },
-    [name, onEditModeChange, title, years]
+    [days, name, onEditModeChange, title, wish]
   );
 
   useEffect(() => {
@@ -226,8 +232,9 @@ export default function EmployeeReveal({
   };
 
   const shownName = editMode ? previewName : name;
-  const shownYears = editMode ? previewYears : years;
+  const shownDays = editMode ? previewDays : days;
   const shownTitle = editMode ? previewTitle : title;
+  const shownWish = editMode ? previewWish : wish;
   const showContent = visible || editMode;
 
   const renderElement = (
@@ -297,7 +304,7 @@ export default function EmployeeReveal({
         <AnimatePresence mode="wait">
           {showContent && (
             <motion.div
-              key={editMode ? "layout-preview" : `${title}-${name}-${years}`}
+              key={editMode ? "layout-preview" : `${title}-${name}-${days}-${wish}`}
               className="absolute inset-0"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -319,21 +326,18 @@ export default function EmployeeReveal({
               {renderElement(
                 "tenure",
                 <>
-                  Đã đồng hành cùng MB Life hơn{" "}
+                  vì{" "}
                   <span className="text-[2.1em] font-bold leading-none text-[#f5d77a]">
-                    {shownYears}
+                    {shownDays}
                   </span>{" "}
-                  năm qua
+                  ngày không ngừng tiến bước cùng MB Life.
                 </>,
                 "font-medium uppercase tracking-[0.12em] text-[#e8c96a]"
               )}
 
               {renderElement(
                 "wish",
-                <>
-                  Chúc {shownTitle} luôn vững bước, lan tỏa giá trị và cùng MB
-                  Life tiến bước rực rỡ, vạn dặm thăng hoa.
-                </>,
+                <>{shownWish}</>,
                 "font-light leading-relaxed text-white/70"
               )}
 
@@ -418,18 +422,27 @@ export default function EmployeeReveal({
               placeholder="Tên test"
             />
             <label className="flex items-center text-xs text-white/45">
-              Số năm
+              Số ngày
             </label>
             <input
-              aria-label="Số năm preview"
+              aria-label="Số ngày preview"
               type="number"
               min={0}
-              max={99}
-              value={previewYears}
+              value={previewDays}
               onChange={(event) =>
-                setPreviewYears(Number(event.target.value) || 0)
+                setPreviewDays(Number(event.target.value) || 0)
               }
               className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none focus:border-[#e8c96a]/60"
+            />
+            <label className="flex items-center text-xs text-white/45">
+              Câu chúc
+            </label>
+            <textarea
+              aria-label="Câu chúc preview"
+              value={previewWish}
+              onChange={(event) => setPreviewWish(event.target.value)}
+              rows={2}
+              className="resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none focus:border-[#e8c96a]/60"
             />
           </div>
 

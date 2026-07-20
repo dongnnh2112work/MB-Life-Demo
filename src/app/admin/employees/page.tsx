@@ -20,8 +20,9 @@ type Feedback = { type: "success" | "error"; text: string } | null;
 const EMPTY_DRAFT: EmployeeDraft = {
   code: "",
   name: "",
-  years: 0,
+  days: 0,
   title: "Chị",
+  wish: "",
 };
 
 function normalizedDraft(draft: EmployeeDraft): EmployeeDraft {
@@ -30,7 +31,8 @@ function normalizedDraft(draft: EmployeeDraft): EmployeeDraft {
     ...draft,
     code: /^\d+$/.test(rawCode) ? rawCode.padStart(3, "0") : rawCode,
     name: draft.name.trim().replace(/\s+/g, " "),
-    years: Math.max(0, Math.trunc(Number(draft.years) || 0)),
+    days: Math.max(0, Math.trunc(Number(draft.days) || 0)),
+    wish: draft.wish.trim(),
   };
 }
 
@@ -59,7 +61,7 @@ export default function EmployeeAdminPage() {
       const supabase = createBrowserClient();
       const { data, error } = await supabase
         .from("employees")
-        .select("id, code, name, years, title")
+        .select("id, code, name, days, title, wish")
         .order("code");
 
       if (error) throw error;
@@ -104,8 +106,9 @@ export default function EmployeeAdminPage() {
     setDraft({
       code: employee.code,
       name: employee.name,
-      years: employee.years,
+      days: employee.days,
       title: employee.title,
+      wish: employee.wish,
     });
     setShowCreate(false);
     setFeedback(null);
@@ -121,10 +124,10 @@ export default function EmployeeAdminPage() {
     event.preventDefault();
     const payload = normalizedDraft(draft);
 
-    if (!payload.code || !payload.name) {
+    if (!payload.code || !payload.name || !payload.wish) {
       setFeedback({
         type: "error",
-        text: "Mã nhân viên và họ tên không được để trống.",
+        text: "Mã nhân viên, họ tên và câu chúc riêng không được để trống.",
       });
       return;
     }
@@ -229,11 +232,12 @@ export default function EmployeeAdminPage() {
     setImporting(true);
     setFeedback(null);
 
-    const payload = validImportRows.map(({ code, name, years, title }) => ({
+    const payload = validImportRows.map(({ code, name, days, title, wish }) => ({
       code,
       name,
-      years,
+      days,
       title,
+      wish,
     }));
 
     let importError: string | null = null;
@@ -303,17 +307,17 @@ export default function EmployeeAdminPage() {
       </label>
       <label className="grid gap-1.5">
         <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">
-          Số năm
+          Số ngày
         </span>
         <input
-          aria-label={`${prefix} số năm`}
+          aria-label={`${prefix} số ngày`}
           type="number"
           min={0}
-          value={draft.years}
+          value={draft.days}
           onChange={(event) =>
             setDraft((current) => ({
               ...current,
-              years: Number(event.target.value),
+              days: Number(event.target.value),
             }))
           }
           className="rounded-xl border border-white/10 bg-[#07101d] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#d5ae45]/60"
@@ -337,6 +341,21 @@ export default function EmployeeAdminPage() {
           <option>Anh</option>
           <option>Chị</option>
         </select>
+      </label>
+      <label className="grid gap-1.5 md:col-span-5">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">
+          Câu chúc riêng
+        </span>
+        <textarea
+          aria-label={`${prefix} câu chúc riêng`}
+          value={draft.wish}
+          onChange={(event) =>
+            setDraft((current) => ({ ...current, wish: event.target.value }))
+          }
+          rows={2}
+          className="resize-none rounded-xl border border-white/10 bg-[#07101d] px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#d5ae45]/60"
+          placeholder="luôn vững bước, lan tỏa giá trị và cùng MB Life tiến bước rực rỡ, vạn dặm thăng hoa."
+        />
       </label>
     </>
   );
@@ -452,8 +471,9 @@ export default function EmployeeAdminPage() {
                     <th className="px-5 py-4 font-medium">Danh xưng</th>
                     <th className="px-5 py-4 font-medium">Họ và tên</th>
                     <th className="px-5 py-4 text-center font-medium">
-                      Số năm
+                      Số ngày
                     </th>
+                    <th className="px-5 py-4 font-medium">Câu chúc riêng</th>
                     <th className="px-5 py-4 text-right font-medium">
                       Thao tác
                     </th>
@@ -463,7 +483,7 @@ export default function EmployeeAdminPage() {
                   {loading ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         className="px-5 py-16 text-center text-sm text-white/35"
                       >
                         Đang tải dữ liệu…
@@ -472,7 +492,7 @@ export default function EmployeeAdminPage() {
                   ) : filteredEmployees.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         className="px-5 py-16 text-center text-sm text-white/35"
                       >
                         Không tìm thấy nhân viên.
@@ -485,7 +505,7 @@ export default function EmployeeAdminPage() {
                           key={employee.id}
                           className="border-b border-[#d5ae45]/20 bg-[#d5ae45]/[0.06]"
                         >
-                          <td colSpan={5} className="p-4">
+                          <td colSpan={6} className="p-4">
                             <form
                               onSubmit={saveEmployee}
                               className="grid items-end gap-3 md:grid-cols-5"
@@ -525,7 +545,10 @@ export default function EmployeeAdminPage() {
                             {employee.name}
                           </td>
                           <td className="px-5 py-4 text-center text-sm text-white/60">
-                            {employee.years}
+                            {employee.days}
+                          </td>
+                          <td className="max-w-[240px] truncate px-5 py-4 text-sm text-white/50">
+                            {employee.wish}
                           </td>
                           <td className="px-5 py-4">
                             <div className="flex justify-end gap-2">
@@ -571,9 +594,10 @@ export default function EmployeeAdminPage() {
           <p className="mt-3 text-xs leading-relaxed text-white/40">
             Cột bắt buộc: <strong className="text-white/65">Mã nhân viên</strong>
             , <strong className="text-white/65">Họ tên</strong>,{" "}
-            <strong className="text-white/65">Số năm</strong> và{" "}
-            <strong className="text-white/65">Danh xưng</strong>. Mã trùng sẽ
-            được cập nhật.
+            <strong className="text-white/65">Số ngày</strong>,{" "}
+            <strong className="text-white/65">Danh xưng</strong> và{" "}
+            <strong className="text-white/65">Câu chúc riêng</strong>. Mã
+            trùng sẽ được cập nhật.
           </p>
 
           <input
@@ -641,7 +665,7 @@ export default function EmployeeAdminPage() {
                       )}
                     </div>
                     <p className="mt-1 truncate text-xs text-white/70">
-                      {row.title} {row.name} · {row.years} năm
+                      {row.title} {row.name} · {row.days} ngày
                     </p>
                     {row.error && (
                       <p className="mt-1 text-[10px] text-red-300">

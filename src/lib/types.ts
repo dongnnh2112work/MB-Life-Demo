@@ -4,16 +4,18 @@ export type Employee = {
   id: string;
   code: string;
   name: string;
-  years: number;
+  days: number;
   title: Honorific;
+  wish: string;
 };
 
 export type LiveState = {
   id: number;
   employee_id: string | null;
   employee_name: string | null;
-  years: number | null;
+  days: number | null;
   title: Honorific | null;
+  wish: string | null;
   triggered_at: string | null;
   updated_at: string;
 };

@@ -7,22 +7,24 @@ export type ImportedEmployee = {
   rowNumber: number;
   code: string;
   name: string;
-  years: number;
+  days: number;
   title: Honorific;
+  wish: string;
   error: string | null;
 };
 
 const HEADER_ALIASES = {
   code: ["code", "ma", "ma nhan vien", "ma so nhan vien", "msnv"],
   name: ["name", "ten", "ho ten", "ho va ten", "ten nhan vien"],
-  years: [
-    "years",
-    "so nam",
-    "so nam cong tac",
-    "nam cong tac",
+  days: [
+    "days",
+    "so ngay",
+    "so ngay dong hanh",
+    "ngay dong hanh",
     "tham nien",
   ],
   title: ["title", "danh xung", "xung ho", "anh chi"],
+  wish: ["wish", "loi chuc", "cau chuc", "loi chuc rieng", "cau chuc rieng"],
 } as const;
 
 function normalizeText(value: unknown): string {
@@ -73,8 +75,9 @@ export async function readEmployeeExcel(
   const columns = {
     code: findColumn(headers, HEADER_ALIASES.code),
     name: findColumn(headers, HEADER_ALIASES.name),
-    years: findColumn(headers, HEADER_ALIASES.years),
+    days: findColumn(headers, HEADER_ALIASES.days),
     title: findColumn(headers, HEADER_ALIASES.title),
+    wish: findColumn(headers, HEADER_ALIASES.wish),
   };
 
   const missing = (Object.keys(columns) as (keyof typeof columns)[]).filter(
@@ -83,7 +86,7 @@ export async function readEmployeeExcel(
 
   if (missing.length > 0) {
     throw new Error(
-      "Thiếu cột bắt buộc. File cần có: Mã nhân viên, Họ tên, Số năm, Danh xưng."
+      "Thiếu cột bắt buộc. File cần có: Mã nhân viên, Họ tên, Số ngày, Danh xưng, Câu chúc."
     );
   }
 
@@ -95,18 +98,20 @@ export async function readEmployeeExcel(
       const values = {
         code: employeeCode(row[columns.code]),
         name: String(row[columns.name] ?? "").trim(),
-        years: Number(row[columns.years]),
+        days: Number(row[columns.days]),
         title: honorific(row[columns.title]),
+        wish: String(row[columns.wish] ?? "").trim(),
       };
 
-      if (!values.code && !values.name && !row[columns.years]) return null;
+      if (!values.code && !values.name && !row[columns.days]) return null;
 
       let error: string | null = null;
       if (!values.code) error = "Thiếu mã nhân viên";
       else if (!values.name) error = "Thiếu họ tên";
-      else if (!Number.isInteger(values.years) || values.years < 0)
-        error = "Số năm không hợp lệ";
+      else if (!Number.isInteger(values.days) || values.days < 0)
+        error = "Số ngày không hợp lệ";
       else if (!values.title) error = "Danh xưng phải là Anh hoặc Chị";
+      else if (!values.wish) error = "Thiếu câu chúc riêng";
       else if (seenCodes.has(values.code)) error = "Mã bị trùng trong file";
 
       seenCodes.add(values.code);
@@ -115,8 +120,9 @@ export async function readEmployeeExcel(
         rowNumber: index + 2,
         code: values.code,
         name: values.name,
-        years: Number.isFinite(values.years) ? values.years : 0,
+        days: Number.isFinite(values.days) ? values.days : 0,
         title: values.title ?? "Chị",
+        wish: values.wish,
         error,
       };
     })

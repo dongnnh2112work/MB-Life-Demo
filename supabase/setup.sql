@@ -8,8 +8,9 @@ CREATE TABLE IF NOT EXISTS employees (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL UNIQUE,
-  years INTEGER NOT NULL CHECK (years >= 0),
+  days INTEGER NOT NULL CHECK (days >= 0),
   title TEXT NOT NULL CHECK (title IN ('Anh', 'Chị')),
+  wish TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -18,8 +19,9 @@ CREATE TABLE IF NOT EXISTS live_state (
   id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
   employee_id UUID REFERENCES employees(id) ON DELETE SET NULL,
   employee_name TEXT,
-  years INTEGER,
+  days INTEGER,
   title TEXT CHECK (title IS NULL OR title IN ('Anh', 'Chị')),
+  wish TEXT,
   triggered_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -44,7 +46,7 @@ CREATE POLICY "employees_insert" ON employees
   WITH CHECK (
     code <> ''
     AND name <> ''
-    AND years >= 0
+    AND days >= 0
     AND title IN ('Anh', 'Chị')
   );
 
@@ -55,7 +57,7 @@ CREATE POLICY "employees_update" ON employees
   WITH CHECK (
     code <> ''
     AND name <> ''
-    AND years >= 0
+    AND days >= 0
     AND title IN ('Anh', 'Chị')
   );
 
@@ -91,19 +93,22 @@ END $$;
 
 -- 5) Seed dữ liệu demo
 -- code = mã số nhân viên nhập trên iPad
--- title = 'Anh' | 'Chị' (dùng cho "Cảm ơn …" / "Chúc …")
-INSERT INTO employees (code, name, years, title) VALUES
-  ('001', 'Nguyễn Ngọc Hải Đông', 10, 'Anh'),
-  ('002', 'Nguyễn Thùy Linh', 2, 'Chị')
+-- title = 'Anh' | 'Chị' (dùng cho "Cảm ơn …")
+-- wish = câu chúc riêng của từng người, hiển thị ở cuối màn hình LED
+INSERT INTO employees (code, name, days, title, wish) VALUES
+  ('001', 'Nguyễn Ngọc Hải Đông', 10, 'Anh', 'luôn vững bước, lan tỏa giá trị và cùng MB Life tiến bước rực rỡ, vạn dặm thăng hoa.'),
+  ('002', 'Nguyễn Thùy Linh', 2, 'Chị', 'luôn giữ vững nhiệt huyết và tiếp tục tỏa sáng cùng MB Life.')
 ON CONFLICT (code) DO UPDATE SET
   name = EXCLUDED.name,
-  years = EXCLUDED.years,
-  title = EXCLUDED.title;
+  days = EXCLUDED.days,
+  title = EXCLUDED.title,
+  wish = EXCLUDED.wish;
 
 -- Thêm nhân viên mới (ví dụ):
--- INSERT INTO employees (code, name, years, title) VALUES
---   ('003', 'Tên Nhân Viên', 5, 'Chị')
+-- INSERT INTO employees (code, name, days, title, wish) VALUES
+--   ('003', 'Tên Nhân Viên', 5, 'Chị', 'Câu chúc riêng cho người này.')
 -- ON CONFLICT (code) DO UPDATE SET
 --   name = EXCLUDED.name,
---   years = EXCLUDED.years,
---   title = EXCLUDED.title;
+--   days = EXCLUDED.days,
+--   title = EXCLUDED.title,
+--   wish = EXCLUDED.wish;

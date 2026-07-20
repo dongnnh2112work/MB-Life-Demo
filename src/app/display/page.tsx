@@ -14,8 +14,9 @@ const IDLE_STATE: LiveState = {
   id: 1,
   employee_id: null,
   employee_name: null,
-  years: null,
+  days: null,
   title: null,
+  wish: null,
   triggered_at: null,
   updated_at: new Date().toISOString(),
 };
@@ -34,7 +35,7 @@ export default function DisplayPage() {
   }, [applyState]);
 
   const hasEmployee = Boolean(
-    liveState.employee_name && liveState.years != null && liveState.title
+    liveState.employee_name && liveState.days != null && liveState.title
   );
 
   return (
@@ -56,8 +57,9 @@ export default function DisplayPage() {
 
       <EmployeeReveal
         name={liveState.employee_name ?? ""}
-        years={liveState.years ?? 0}
+        days={liveState.days ?? 0}
         title={liveState.title ?? "Chị"}
+        wish={liveState.wish ?? ""}
         visible={hasEmployee}
         onEditModeChange={setEditingLayout}
       />
