@@ -21,7 +21,11 @@ body {
 .display-name {
   font-family: var(--font-body), sans-serif;
   font-weight: 700;
-  text-shadow: 0 0 60px rgba(212, 175, 55, 0.35);
+  background: linear-gradient(180deg, #ffffff 0%, #ffe9a8 48%, #e0b850 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 42px rgba(212, 175, 55, 0.4));
 }
 
 .ipad-gradient-btn {
