@@ -29,8 +29,8 @@ export function IpadLayout({ children }: IpadLayoutProps) {
         <Image
           src="/ipad/Logo.png"
           alt="MB Life — 10 năm"
-          width={336}
-          height={96}
+          width={786}
+          height={258}
           className="h-auto w-[var(--ipad-logo-w)]"
           priority
         />

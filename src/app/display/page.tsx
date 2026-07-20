@@ -70,8 +70,8 @@ export default function DisplayPage() {
         <Image
           src="/ipad/Logo.png"
           alt="MB Life"
-          width={336}
-          height={96}
+          width={786}
+          height={258}
           className="h-auto w-[var(--ipad-logo-w)]"
           priority
         />
@@ -80,12 +80,10 @@ export default function DisplayPage() {
       {/* Tagline — large & centered while idle (welcome), small on top when a
           member is on stage (compact), mirroring the iPad hero → compact flow. */}
       <div
-        className="pointer-events-none absolute left-1/2 z-[5] flex -translate-x-1/2 justify-center transition-all duration-700 ease-out"
+        className="pointer-events-none absolute inset-x-0 z-[5] flex justify-center transition-all duration-700 ease-out"
         style={{
           top: hasEmployee ? "6vh" : "50%",
-          transform: hasEmployee
-            ? "translate(-50%, 0)"
-            : "translate(-50%, -50%)",
+          transform: hasEmployee ? "none" : "translateY(-50%)",
         }}
       >
         <Image
@@ -94,21 +92,22 @@ export default function DisplayPage() {
           width={1444}
           height={928}
           priority
-          className="h-auto transition-all duration-700 ease-out"
+          className="h-auto object-contain transition-all duration-700 ease-out"
           style={{
             width: hasEmployee
               ? "clamp(200px, 16vw, 320px)"
-              : "min(48vw, 920px)",
+              : "min(96vw, 1840px)",
+            maxHeight: hasEmployee ? undefined : "72vh",
           }}
         />
       </div>
 
       {!hasEmployee && !editingLayout && (
-        <div className="absolute inset-x-0 bottom-[16vh] z-10 flex flex-col items-center text-center">
-          <p className="text-sm uppercase tracking-[0.5em] text-white/40">
+        <div className="absolute inset-x-0 bottom-[5vh] z-10 flex flex-col items-center text-center">
+          <p className="text-xs uppercase tracking-[0.5em] text-white/35">
             MB Life
           </p>
-          <h2 className="mt-3 text-2xl font-normal text-white/55 md:text-4xl">
+          <h2 className="mt-2 text-lg font-normal text-white/45 md:text-2xl">
             Chờ thành viên lên sân khấu
           </h2>
         </div>
