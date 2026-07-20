@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS employees (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT NOT NULL UNIQUE,
-  name TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
   years INTEGER NOT NULL CHECK (years >= 0),
   title TEXT NOT NULL CHECK (title IN ('Anh', 'Chị')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()

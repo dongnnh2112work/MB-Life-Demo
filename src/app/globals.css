@@ -19,7 +19,8 @@ body {
 }
 
 .display-name {
-  font-family: var(--font-display), Georgia, serif;
+  font-family: var(--font-body), sans-serif;
+  font-weight: 700;
   text-shadow: 0 0 60px rgba(212, 175, 55, 0.35);
 }
 

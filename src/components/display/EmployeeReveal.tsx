@@ -314,7 +314,7 @@ export default function EmployeeReveal({
               {renderElement(
                 "thanks",
                 <>Cảm ơn {shownTitle}</>,
-                "font-light tracking-wide text-white/80"
+                "font-normal tracking-wide text-white/80"
               )}
 
               {renderElement(
@@ -332,13 +332,13 @@ export default function EmployeeReveal({
                   </span>{" "}
                   ngày không ngừng tiến bước cùng MB Life.
                 </>,
-                "font-medium uppercase tracking-[0.12em] text-[#e8c96a]"
+                "font-normal uppercase tracking-[0.12em] text-[#e8c96a]"
               )}
 
               {renderElement(
                 "wish",
                 <>{shownWish}</>,
-                "font-light leading-relaxed text-white/70"
+                "font-normal leading-relaxed text-white/70"
               )}
 
               {renderElement(

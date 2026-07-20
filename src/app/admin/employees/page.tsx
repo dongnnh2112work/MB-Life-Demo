@@ -261,7 +261,7 @@ export default function EmployeeAdminPage() {
     if (importError) {
       setFeedback({
         type: "error",
-        text: `Import thất bại: ${importError}. Kiểm tra mã/tên trùng và migration CRUD.`,
+        text: `Import thất bại: ${importError}. Kiểm tra mã trùng và đã chạy migration mới nhất (006_drop_name_unique).`,
       });
     } else {
       setFeedback({

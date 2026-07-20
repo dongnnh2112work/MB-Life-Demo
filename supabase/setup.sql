@@ -7,7 +7,7 @@
 CREATE TABLE IF NOT EXISTS employees (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT NOT NULL UNIQUE,
-  name TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
   days INTEGER NOT NULL CHECK (days >= 0),
   title TEXT NOT NULL CHECK (title IN ('Anh', 'Chị')),
   wish TEXT NOT NULL,

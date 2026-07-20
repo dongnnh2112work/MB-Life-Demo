@@ -49,7 +49,7 @@ export default function DisplayPage() {
           <p className="text-sm uppercase tracking-[0.5em] text-white/30">
             MB Life
           </p>
-          <h2 className="mt-4 text-2xl font-light text-white/50 md:text-4xl">
+          <h2 className="mt-4 text-2xl font-normal text-white/50 md:text-4xl">
             Chờ thành viên lên sân khấu
           </h2>
         </div>
