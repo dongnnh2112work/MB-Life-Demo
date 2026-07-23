@@ -1,4 +1,5 @@
 import type { Honorific } from "./types";
+import { normalizeEmployeeCode } from "./employees";
 import type { CellValue } from "read-excel-file/browser";
 
 type ExcelCell = CellValue | null;
@@ -51,7 +52,7 @@ function employeeCode(value: ExcelCell): string {
       ? String(Math.trunc(value))
       : String(value ?? "").trim();
 
-  return /^\d+$/.test(raw) ? raw.padStart(3, "0") : raw;
+  return normalizeEmployeeCode(raw);
 }
 
 function honorific(value: ExcelCell): Honorific | null {

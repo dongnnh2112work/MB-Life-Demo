@@ -11,6 +11,10 @@ import {
   type FormEvent,
 } from "react";
 import { readEmployeeExcel, type ImportedEmployee } from "@/lib/employee-import";
+import {
+  normalizeEmployeeCode,
+  numericCodeKey,
+} from "@/lib/employees";
 import { createBrowserClient } from "@/lib/supabase/client";
 import type { Employee, Honorific } from "@/lib/types";
 
@@ -26,10 +30,9 @@ const EMPTY_DRAFT: EmployeeDraft = {
 };
 
 function normalizedDraft(draft: EmployeeDraft): EmployeeDraft {
-  const rawCode = draft.code.trim();
   return {
     ...draft,
-    code: /^\d+$/.test(rawCode) ? rawCode.padStart(3, "0") : rawCode,
+    code: normalizeEmployeeCode(draft.code),
     name: draft.name.trim().replace(/\s+/g, " "),
     days: Math.max(0, Math.trunc(Number(draft.days) || 0)),
     wish: draft.wish.trim(),
@@ -65,7 +68,40 @@ export default function EmployeeAdminPage() {
         .order("code");
 
       if (error) throw error;
-      setEmployees((data as Employee[]) ?? []);
+
+      const rows = (data as Employee[]) ?? [];
+
+      for (const row of rows) {
+        const nextCode = normalizeEmployeeCode(row.code);
+        if (nextCode === row.code) continue;
+
+        const conflict = rows.find(
+          (other) => other.id !== row.id && other.code === nextCode
+        );
+
+        if (conflict) {
+          // Keep the already-normalized row; drop the padded duplicate.
+          const { error: deleteError } = await supabase
+            .from("employees")
+            .delete()
+            .eq("id", row.id);
+          if (deleteError) throw deleteError;
+          continue;
+        }
+
+        const { error: updateError } = await supabase
+          .from("employees")
+          .update({ code: nextCode })
+          .eq("id", row.id);
+        if (updateError) throw updateError;
+      }
+
+      const { data: refreshed, error: refreshError } = await supabase
+        .from("employees")
+        .select("id, code, name, days, title, wish")
+        .order("code");
+      if (refreshError) throw refreshError;
+      setEmployees((refreshed as Employee[]) ?? []);
     } catch (error) {
       setFeedback({
         type: "error",
@@ -232,27 +268,62 @@ export default function EmployeeAdminPage() {
     setImporting(true);
     setFeedback(null);
 
-    const payload = validImportRows.map(({ code, name, days, title, wish }) => ({
-      code,
-      name,
-      days,
-      title,
-      wish,
-    }));
-
     let importError: string | null = null;
+    let importedCount = 0;
+
     try {
       const supabase = createBrowserClient();
-      for (let index = 0; index < payload.length; index += 200) {
-        const chunk = payload.slice(index, index + 200);
-        const { error } = await supabase
-          .from("employees")
-          .upsert(chunk, { onConflict: "code" });
+      const { data: existingRows, error: loadError } = await supabase
+        .from("employees")
+        .select("id, code");
 
-        if (error) {
-          importError = error.message;
-          break;
+      if (loadError) throw loadError;
+
+      const existing = (existingRows as Pick<Employee, "id" | "code">[]) ?? [];
+
+      for (const row of validImportRows) {
+        const code = normalizeEmployeeCode(row.code);
+        const rowKey = numericCodeKey(code);
+        const match =
+          existing.find((employee) => employee.code === code) ??
+          (rowKey == null
+            ? undefined
+            : existing.find(
+                (employee) => numericCodeKey(employee.code) === rowKey
+              ));
+
+        const payload = {
+          code,
+          name: row.name,
+          days: row.days,
+          title: row.title,
+          wish: row.wish,
+        };
+
+        if (match) {
+          const { error } = await supabase
+            .from("employees")
+            .update(payload)
+            .eq("id", match.id);
+          if (error) {
+            importError = error.message;
+            break;
+          }
+          match.code = code;
+        } else {
+          const { data, error } = await supabase
+            .from("employees")
+            .insert(payload)
+            .select("id, code")
+            .single();
+          if (error) {
+            importError = error.message;
+            break;
+          }
+          if (data) existing.push(data as Pick<Employee, "id" | "code">);
         }
+
+        importedCount += 1;
       }
     } catch (error) {
       importError = errorMessage(error);
@@ -261,12 +332,12 @@ export default function EmployeeAdminPage() {
     if (importError) {
       setFeedback({
         type: "error",
-        text: `Import thất bại: ${importError}. Kiểm tra mã trùng và đã chạy migration mới nhất (006_drop_name_unique).`,
+        text: `Import thất bại: ${importError}. Kiểm tra mã trùng và migration.`,
       });
     } else {
       setFeedback({
         type: "success",
-        text: `Đã import ${validImportRows.length} nhân viên thành công.`,
+        text: `Đã import ${importedCount} nhân viên thành công.`,
       });
       setImportRows([]);
       setImportFileName("");
