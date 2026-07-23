@@ -19,6 +19,11 @@ import {
   type DisplayElementLayout,
   type DisplayLayout,
 } from "@/lib/display-layout";
+import {
+  tenurePrefix,
+  tenureSuffix,
+  thanksLine,
+} from "@/lib/display-copy";
 import type { Honorific } from "@/lib/types";
 
 type Props = {
@@ -313,7 +318,7 @@ export default function EmployeeReveal({
             >
               {renderElement(
                 "thanks",
-                <>Cảm ơn {shownTitle}</>,
+                <>{thanksLine(shownTitle)}</>,
                 "font-normal tracking-wide text-white/80"
               )}
 
@@ -326,11 +331,11 @@ export default function EmployeeReveal({
               {renderElement(
                 "tenure",
                 <>
-                  vì{" "}
+                  {tenurePrefix(shownTitle)}{" "}
                   <span className="text-[2.1em] font-bold leading-none text-[#f5d77a]">
                     {shownDays}
                   </span>{" "}
-                  ngày không ngừng tiến bước cùng MB Life.
+                  {tenureSuffix(shownTitle)}
                 </>,
                 "font-normal uppercase tracking-[0.12em] text-[#e8c96a]"
               )}
@@ -413,6 +418,8 @@ export default function EmployeeReveal({
             >
               <option className="bg-[#07101f]">Anh</option>
               <option className="bg-[#07101f]">Chị</option>
+              <option className="bg-[#07101f]">Mr</option>
+              <option className="bg-[#07101f]">Ms</option>
             </select>
             <input
               aria-label="Tên preview"

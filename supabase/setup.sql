@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS employees (
   code TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   days INTEGER NOT NULL CHECK (days >= 0),
-  title TEXT NOT NULL CHECK (title IN ('Anh', 'Chị')),
+  title TEXT NOT NULL CHECK (title IN ('Anh', 'Chị', 'Mr', 'Ms')),
   wish TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS live_state (
   employee_id UUID REFERENCES employees(id) ON DELETE SET NULL,
   employee_name TEXT,
   days INTEGER,
-  title TEXT CHECK (title IS NULL OR title IN ('Anh', 'Chị')),
+  title TEXT CHECK (title IS NULL OR title IN ('Anh', 'Chị', 'Mr', 'Ms')),
   wish TEXT,
   triggered_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -47,7 +47,7 @@ CREATE POLICY "employees_insert" ON employees
     code <> ''
     AND name <> ''
     AND days >= 0
-    AND title IN ('Anh', 'Chị')
+    AND title IN ('Anh', 'Chị', 'Mr', 'Ms')
   );
 
 DROP POLICY IF EXISTS "employees_update" ON employees;
@@ -58,7 +58,7 @@ CREATE POLICY "employees_update" ON employees
     code <> ''
     AND name <> ''
     AND days >= 0
-    AND title IN ('Anh', 'Chị')
+    AND title IN ('Anh', 'Chị', 'Mr', 'Ms')
   );
 
 DROP POLICY IF EXISTS "employees_delete" ON employees;
@@ -93,11 +93,12 @@ END $$;
 
 -- 5) Seed dữ liệu demo
 -- code = mã số nhân viên nhập trên iPad
--- title = 'Anh' | 'Chị' (dùng cho "Cảm ơn …")
--- wish = câu chúc riêng của từng người, hiển thị ở cuối màn hình LED
+-- title = 'Anh' | 'Chị' (VI) | 'Mr' | 'Ms' (EN)
+-- wish = câu chúc / message riêng (VI hoặc EN theo danh xưng)
 INSERT INTO employees (code, name, days, title, wish) VALUES
   ('001', 'Nguyễn Ngọc Hải Đông', 10, 'Anh', 'luôn vững bước, lan tỏa giá trị và cùng MB Life tiến bước rực rỡ, vạn dặm thăng hoa.'),
-  ('002', 'Nguyễn Thùy Linh', 2, 'Chị', 'luôn giữ vững nhiệt huyết và tiếp tục tỏa sáng cùng MB Life.')
+  ('002', 'Nguyễn Thùy Linh', 2, 'Chị', 'luôn giữ vững nhiệt huyết và tiếp tục tỏa sáng cùng MB Life.'),
+  ('003', 'John Smith', 5, 'Mr', 'keep shining and keep moving forward with MB Life.')
 ON CONFLICT (code) DO UPDATE SET
   name = EXCLUDED.name,
   days = EXCLUDED.days,

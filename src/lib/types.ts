@@ -1,4 +1,4 @@
-export type Honorific = "Anh" | "Chị";
+export type Honorific = "Anh" | "Chị" | "Mr" | "Ms";
 
 export type Employee = {
   id: string;

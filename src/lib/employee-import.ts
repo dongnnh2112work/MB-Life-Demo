@@ -58,6 +58,16 @@ function honorific(value: ExcelCell): Honorific | null {
   const normalized = normalizeText(value);
   if (normalized === "anh") return "Anh";
   if (normalized === "chi") return "Chị";
+  if (normalized === "mr" || normalized === "mister" || normalized === "mr.")
+    return "Mr";
+  if (
+    normalized === "ms" ||
+    normalized === "miss" ||
+    normalized === "ms." ||
+    normalized === "mrs" ||
+    normalized === "mrs."
+  )
+    return "Ms";
   return null;
 }
 
@@ -110,7 +120,8 @@ export async function readEmployeeExcel(
       else if (!values.name) error = "Thiếu họ tên";
       else if (!Number.isInteger(values.days) || values.days < 0)
         error = "Số ngày không hợp lệ";
-      else if (!values.title) error = "Danh xưng phải là Anh hoặc Chị";
+      else if (!values.title)
+        error = "Danh xưng phải là Anh, Chị, Mr hoặc Ms";
       else if (!values.wish) error = "Thiếu câu chúc riêng";
       else if (seenCodes.has(values.code)) error = "Mã bị trùng trong file";
 

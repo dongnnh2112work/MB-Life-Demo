@@ -340,6 +340,8 @@ export default function EmployeeAdminPage() {
         >
           <option>Anh</option>
           <option>Chị</option>
+          <option>Mr</option>
+          <option>Ms</option>
         </select>
       </label>
       <label className="grid gap-1.5 md:col-span-5">

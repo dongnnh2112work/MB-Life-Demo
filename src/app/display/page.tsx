@@ -5,6 +5,7 @@ import Image from "next/image";
 import { subscribeLiveState } from "@/lib/live-data";
 import type { LiveState } from "@/lib/types";
 import EmployeeReveal from "@/components/display/EmployeeReveal";
+import { GROUP_WAIT_COPY } from "@/lib/display-copy";
 import "@/components/ipad/ipad-layout.css";
 
 const IDLE_STATE: LiveState = {
@@ -105,10 +106,10 @@ export default function DisplayPage() {
       {!hasEmployee && !editingLayout && (
         <div className="absolute inset-x-0 bottom-[5vh] z-10 flex flex-col items-center text-center">
           <p className="text-xs uppercase tracking-[0.5em] text-white/35">
-            MB Life
+            {GROUP_WAIT_COPY.eyebrow}
           </p>
           <h2 className="mt-2 text-lg font-normal text-white/45 md:text-2xl">
-            Chờ thành viên lên sân khấu
+            {GROUP_WAIT_COPY.line}
           </h2>
         </div>
       )}
